@@ -1,47 +1,122 @@
 
-# FinanzApp 💰 - El Poder del Dinero v2.0
+# FinanzApp 💰 — El Poder del Dinero
 
-FinanzApp es una aplicación web orientada a la gestión de finanzas personales, que permite a los usuarios organizar sus ingresos, controlar sus gastos y visualizar su información financiera de manera clara e interactiva.
+Aplicación web de gestión de finanzas personales enfocada en ayudar a los usuarios a comprender, controlar y mejorar su comportamiento financiero a través de visualización de datos, automatización y experiencia de usuario intuitiva.
 
 ---
 
 ## 🚀 Propósito
 
-El objetivo del proyecto es proporcionar una herramienta práctica que ayude a los usuarios a comprender su comportamiento financiero y tomar mejores decisiones económicas.
+FinanzApp nace con la idea de resolver un problema real:
 
-Además, el proyecto sirve como base para el aprendizaje de desarrollo frontend y gestión de estado en aplicaciones modernas.
+> “No necesitas ganar más. Necesitas ver más.”
+
+El sistema permite a los usuarios comprender cómo manejan su dinero, detectar problemas financieros y tomar decisiones informadas a través de indicadores claros y visuales.
 
 ---
 
 ## 🧩 Funcionalidades principales
 
 - Gestión de ingresos y gastos
-- Visualización de datos financieros
-- Interfaz moderna e intuitiva
-- Sistema de temas personalizables estilo VS Code
-- Persistencia de preferencias en localStorage
+- Control de deudas con cuotas
+- Dashboard financiero con métricas en tiempo real
+- Visualización con gráficos interactivos
+- Sistema de alertas (déficit y sobreendeudamiento)
+- Gestión multi-perfil (hogar, negocio, pareja, etc.)
+- Registro rápido de gastos (FAB “gasto hormiga”)
+- Sistema de recordatorios con acciones ✓/✗
+- Calculadora financiera (créditos y básica)
+- Libreta de notas financieras
 
 ---
 
-## 🎨 Selector de Temas
+## 📤 Exportación e importación de datos
 
-Esta versión incluye 13 temas inspirados en Visual Studio Code:
+FinanzApp permite gestionar la información de forma portable y segura mediante:
 
-**Oscuros:**  
-Dark Modern, One Dark Pro, Dracula, Night Owl, Tokyo Night, Monokai, Solarized Dark, Gruvbox Dark  
+- Exportación a Excel (.xlsx)
+- Exportación a CSV
+- Exportación a JSON (backup completo)
+- Importación desde Excel
+- Restauración de backups JSON
 
-**Claros:**  
-Light Modern, GitHub Light, Solarized Light  
+Esto permite al usuario respaldar, migrar y recuperar su información fácilmente.
 
-**Alto Contraste:**  
-HC Oscuro, HC Claro  
+---
 
-El selector aparece en:
+## 🧠 Lógica de negocio
 
-- **Desktop:** esquina inferior del sidebar  
-- **Móvil:** dentro del menú "Más"  
+El sistema implementa reglas financieras reactivas basadas en el comportamiento del usuario:
 
-El tema seleccionado se guarda automáticamente en `localStorage`.
+- < 50% de ingresos comprometidos → estado positivo
+- 50–79% → estado controlado
+- ≥ 80% o déficit → alerta financiera
+
+Estas reglas afectan el dashboard y la interacción visual del sistema.
+
+---
+
+## 🎭 Experiencia de usuario diferencial
+
+### Mascotas dinámicas (Finn & Finna)
+
+El sistema incorpora asistentes visuales que representan el estado financiero:
+
+- `happy`
+- `worried`
+- `excited`
+- `thinking`
+
+Reaccionan en tiempo real según el estado financiero del usuario.
+
+Esto convierte la información financiera en una experiencia más comprensible e intuitiva.
+
+---
+
+## 🎨 Diseño e identidad
+
+- Sistema de temas dinámicos (13 temas)
+- Variables CSS para personalización
+- Diseño minimalista y enfocado en claridad
+- Uso de iconografía en lugar de texto
+- Feedback visual mediante estados y alertas sutiles
+
+---
+
+## 🛠️ Tecnologías utilizadas
+
+### Frontend
+- React
+- Vite
+- Tailwind CSS
+
+### Backend / Servicios
+- Firebase Authentication
+- Firebase Firestore
+
+### Otros
+- PWA (Progressive Web App)
+- Cloudflare Pages (deploy)
+
+---
+
+## 🏗️ Arquitectura del proyecto
+
+
+src/
+├── components/   → UI modular
+├── context/      → estado global (Auth, Theme, Profile)
+├── services/     → conexión con Firestore
+├── utils/        → lógica financiera, exportación, notificaciones
+├── hooks/        → persistencia local
+
+
+### Principios aplicados
+
+- Separación de responsabilidades
+- Arquitectura basada en componentes reutilizables
+- Lógica desacoplada
+- Persistencia híbrida (Firestore + localStorage)
 
 
 ---
@@ -62,10 +137,12 @@ El tema seleccionado se guarda automáticamente en `localStorage`.
 
 ---
 
-## 🛠️ Instalación
+## 📦 Instalación
 
 ```bash
 npm install
 npm run dev
+
+
 
 
