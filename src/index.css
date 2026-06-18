@@ -1,0 +1,112 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Mapea las clases orange-* al acento del tema activo ─────────────────── */
+/* En Tailwind v4, @theme usa CSS custom properties en runtime.              */
+/* Cambiar --accent-* cambia automáticamente bg-orange-500, text-orange-400, etc. */
+@theme {
+  --color-orange-50:  var(--accent-50);
+  --color-orange-100: var(--accent-100);
+  --color-orange-200: var(--accent-200);
+  --color-orange-400: var(--accent-400);
+  --color-orange-500: var(--accent-500);
+  --color-orange-600: var(--accent-600);
+  --color-orange-700: var(--accent-700);
+  --color-orange-800: var(--accent-800);
+  --color-orange-950: var(--accent-950);
+}
+
+/* ── Valores por defecto (dark-modern = naranja original) ─────────────────── */
+:root {
+  --accent-50:  #fff7ed;
+  --accent-100: #ffedd5;
+  --accent-200: #fed7aa;
+  --accent-400: #fb923c;
+  --accent-500: #f97316;
+  --accent-600: #ea580c;
+  --accent-700: #c2410c;
+  --accent-800: #9a3412;
+  --accent-950: #431407;
+  --sidebar-bg:  #0f172a;
+  --sidebar-bgd: #04080f;
+  --tooltip-bg:   #ffffff;
+  --tooltip-text: #1e293b;
+}
+
+html.dark {
+  --tooltip-bg:   #0f1826;
+  --tooltip-text: #f1f5f9;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+html.dark body {
+  background: #080d16;
+  color: #f1f5f9;
+}
+
+#root { display: flex; min-height: 100vh; }
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.dark ::-webkit-scrollbar-track { background: #0f1826; }
+.dark ::-webkit-scrollbar-thumb { background: #1e3a6e; }
+.dark ::-webkit-scrollbar-thumb:hover { background: var(--accent-500); }
+
+/* ── Form elements ────────────────────────────────────────────────────────── */
+input, select, textarea { font-family: inherit; }
+
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  background-color: #0f1826;
+  border-color: rgb(37 99 235 / 0.3);
+  color: #f1f5f9;
+}
+.dark input:not([type="checkbox"]):not([type="radio"]):hover,
+.dark select:hover,
+.dark textarea:hover { border-color: rgb(37 99 235 / 0.6); }
+.dark input:not([type="checkbox"]):not([type="radio"]):focus,
+.dark select:focus,
+.dark textarea:focus { border-color: var(--accent-500); outline: none; }
+.dark input::placeholder, .dark textarea::placeholder { color: #475569; }
+.dark select option { background: #0f1826; color: #f1f5f9; }
+
+/* ── iOS safe area ────────────────────────────────────────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}
+@media (max-width: 768px) {
+  input, select, textarea { font-size: 16px; }
+}
+
+html { scroll-behavior: smooth; }
+button { -webkit-tap-highlight-color: transparent; }
+
+/* ── Accent text fix — resuelve contraste en temas claros ── */
+/* Cualquier elemento con fondo de acento debe usar esta variable para el texto */
+.btn-accent {
+  background-color: var(--accent-500);
+  color: var(--accent-text, #ffffff);
+}
+.btn-accent:hover {
+  background-color: var(--accent-600);
+  color: var(--accent-text, #ffffff);
+}
+
+/* Nav active dot */
+.nav-active-dot {
+  background-color: var(--accent-500);
+}

@@ -1,0 +1,39 @@
+<svg width="512" height="512" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="120" rx="28" fill="#080f1e"/>
+  <defs>
+    <radialGradient id="coin" cx="35%" cy="28%" r="68%">
+      <stop offset="0%" stop-color="#FFF5B0"/>
+      <stop offset="25%" stop-color="#F5C040"/>
+      <stop offset="60%" stop-color="#D4880A"/>
+      <stop offset="100%" stop-color="#7A4200"/>
+    </radialGradient>
+    <radialGradient id="rim" cx="50%" cy="50%" r="50%">
+      <stop offset="68%" stop-color="transparent"/>
+      <stop offset="100%" stop-color="#4A2800" stop-opacity="0.6"/>
+    </radialGradient>
+    <radialGradient id="shine" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- canto estriado -->
+  <circle cx="60" cy="60" r="52" fill="none" stroke="#C87818" stroke-width="4.5" stroke-dasharray="6 3.2"/>
+  <circle cx="60" cy="60" r="52" fill="none" stroke="#FFD060" stroke-width="1.5" stroke-dasharray="6 3.2" stroke-dashoffset="3" opacity="0.4"/>
+  <!-- sombra profundidad -->
+  <circle cx="60" cy="63" r="45" fill="#4A2800" opacity="0.4"/>
+  <!-- cuerpo moneda -->
+  <circle cx="60" cy="60" r="45" fill="url(#coin)"/>
+  <circle cx="60" cy="60" r="45" fill="url(#rim)"/>
+  <!-- bordes -->
+  <circle cx="60" cy="60" r="45" fill="none" stroke="#8B5200" stroke-width="1.5"/>
+  <circle cx="60" cy="60" r="43" fill="none" stroke="#FFD060" stroke-width="0.7" opacity="0.45"/>
+  <!-- aro interior grabado -->
+  <circle cx="60" cy="60" r="37" fill="none" stroke="#7A4200" stroke-width="1.2" opacity="0.6"/>
+  <circle cx="60" cy="60" r="35.5" fill="none" stroke="#FFE090" stroke-width="0.5" opacity="0.25"/>
+  <!-- brillo metálico -->
+  <ellipse cx="43" cy="34" rx="14" ry="9" fill="url(#shine)" transform="rotate(-28 43 34)" opacity="0.8"/>
+  <!-- F$ grabada en relieve — sombra oscura abajo derecha -->
+  <text x="61" y="79" text-anchor="middle" font-size="52" font-weight="700" fill="#3A1800" font-family="Georgia,serif" opacity="0.8">F$</text>
+  <!-- F$ grabada en relieve — luz clara arriba izquierda -->
+  <text x="59" y="77" text-anchor="middle" font-size="52" font-weight="700" fill="#FFF8D0" font-family="Georgia,serif" opacity="0.6">F$</text>
+</svg>
