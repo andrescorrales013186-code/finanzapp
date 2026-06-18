@@ -1,7 +1,7 @@
-
 # FinanzApp 💰 — El Poder del Dinero
 
-Aplicación web de gestión de finanzas personales enfocada en ayudar a los usuarios a comprender, controlar y mejorar su comportamiento financiero a través de visualización de datos, automatización y experiencia de usuario intuitiva.
+Aplicación fintech en desarrollo enfocada en la visualización, control y análisis del comportamiento financiero personal mediante dashboards interactivos, automatización de datos y experiencia de usuario orientada a la toma de decisiones.
+
 
 ---
 
