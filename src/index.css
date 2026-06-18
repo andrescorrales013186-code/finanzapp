@@ -29,13 +29,6 @@
   --accent-950: #431407;
   --sidebar-bg:  #0f172a;
   --sidebar-bgd: #04080f;
-  --tooltip-bg:   #ffffff;
-  --tooltip-text: #1e293b;
-}
-
-html.dark {
-  --tooltip-bg:   #0f1826;
-  --tooltip-text: #f1f5f9;
 }
 
 /* ── Base ─────────────────────────────────────────────────────────────────── */
@@ -94,19 +87,3 @@ input, select, textarea { font-family: inherit; }
 
 html { scroll-behavior: smooth; }
 button { -webkit-tap-highlight-color: transparent; }
-
-/* ── Accent text fix — resuelve contraste en temas claros ── */
-/* Cualquier elemento con fondo de acento debe usar esta variable para el texto */
-.btn-accent {
-  background-color: var(--accent-500);
-  color: var(--accent-text, #ffffff);
-}
-.btn-accent:hover {
-  background-color: var(--accent-600);
-  color: var(--accent-text, #ffffff);
-}
-
-/* Nav active dot */
-.nav-active-dot {
-  background-color: var(--accent-500);
-}

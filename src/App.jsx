@@ -1,25 +1,7 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// App.jsx — Punto de entrada principal de FinanzApp
-//
-// CAMBIOS vs versión anterior:
-//   • Se añaden las 4 páginas nuevas al renderPage():
-//     cuentanos, acerca-de, contactenos, tratamiento
-//   • Todo lo demás (lógica de datos, Firestore, export/import) está intacto
-//
-// CONCEPTO — renderPage():
-//   En vez de un router externo (react-router), la app usa un estado "page"
-//   que guarda el id de la pantalla activa. renderPage() hace un switch
-//   sobre ese id y devuelve el componente correcto.
-//   Es un patrón simple perfecto para apps de una sola página sin URLs.
-// ─────────────────────────────────────────────────────────────────────────────
-
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { ProfileProvider, useProfile } from './context/ProfileContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { loadProfileData, saveProfileData } from './services/firestoreService';
 import ProfileSelector from './components/ProfileSelector';
-import AuthScreen from './components/AuthScreen';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import Deudas from './components/Deudas';
@@ -31,128 +13,41 @@ import Recordatorios from './components/Recordatorios';
 import ChecklistPagos from './components/ChecklistPagos';
 import ResumenGeneral from './components/ResumenGeneral';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import Libreta from './components/Libreta';
-import Guia from './components/Guia';
-// ── NUEVAS IMPORTACIONES ──────────────────────────────────────────────────────
-import Cuentanos from './components/Cuentanos';
-import { AcercaDe, Contactenos, TratamientoDatos } from './components/InfoPages';
-// ─────────────────────────────────────────────────────────────────────────────
-import { checkDeudaNotifications, checkLibretaNotifications } from './utils/notifications';
 import { exportarExcel, exportarCSV, exportarJSON, importarExcel, importarJSON } from './utils/exportImport';
-import { X, FileSpreadsheet, FileJson, FileText, Trash2, AlertTriangle, Upload, LogOut } from 'lucide-react';
+import { X, FileSpreadsheet, FileJson, FileText, Trash2, AlertTriangle, Upload } from 'lucide-react';
 import { diasParaProximoPago, calcularProximoPago } from './utils/calculations';
 import './index.css';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ProfileProvider>
-        <ThemeProvider>
-          <AuthGate />
-        </ThemeProvider>
-      </ProfileProvider>
-    </AuthProvider>
+    <ProfileProvider>
+      <ThemeProvider>
+        <AppRouter />
+      </ThemeProvider>
+    </ProfileProvider>
   );
 }
 
-// ── Portero de autenticación ─────────────────────────────────────────────────
-function AuthGate() {
-  const { user } = useAuth();
-
-  if (user === undefined) {
-    return (
-      <div className="min-h-screen bg-[#080d16] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
-            <span className="text-white font-black text-xl">F</span>
-          </div>
-          <div className="w-6 h-6 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
-        </div>
-      </div>
-    );
-  }
-
-  if (user === null) return <AuthScreen />;
-  return <AppRouter />;
-}
-
-// ── Router de perfiles ───────────────────────────────────────────────────────
 function AppRouter() {
   const { activeProfile } = useProfile();
   const [showSelector, setShowSelector] = useState(!activeProfile);
-
   if (showSelector || !activeProfile) {
     return <ProfileSelector onSelect={() => setShowSelector(false)} />;
   }
   return <AppInner key={activeProfile.id} profile={activeProfile} onSwitchProfile={() => setShowSelector(true)} />;
 }
 
-// ── App principal ─────────────────────────────────────────────────────────────
 function AppInner({ profile, onSwitchProfile }) {
-  const { user, logout } = useAuth();
   const pid = profile.id;
-
   const [page, setPage]         = useState('dashboard');
   const [deudas,   setDeudas]   = useLocalStorage(`finanzapp_deudas_${pid}`,   []);
   const [ingresos, setIngresos] = useLocalStorage(`finanzapp_ingresos_${pid}`, []);
   const [gastos,   setGastos]   = useLocalStorage(`finanzapp_gastos_${pid}`,   []);
-  const [apuntes,  setApuntes]  = useLocalStorage(`finanzapp_apuntes_${pid}`,  []);
   const [showIO,   setShowIO]   = useState(false);
   const [importMsg, setImportMsg]   = useState('');
   const [showBorrar, setShowBorrar] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [selBorrar, setSelBorrar]   = useState({ deudas: false, ingresos: false, gastos: false });
-
-  const dataLoaded = useRef(false);
-  const saveTimer  = useRef(null);
-
-  useEffect(() => {
-    const disableLibretaRecordatorio = (id) => setApuntes(prev =>
-      prev.map(n => n.id === id ? { ...n, recordatorio: { ...n.recordatorio, activo: false } } : n)
-    );
-    const check = () => {
-      checkDeudaNotifications(deudas);
-      checkLibretaNotifications(apuntes, disableLibretaRecordatorio);
-    };
-    check();
-    const onVisible = () => { if (document.visibilityState === 'visible') check(); };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
-    loadProfileData(user.uid, pid).then(remote => {
-      if (remote) {
-        if (remote.deudas)   setDeudas(remote.deudas);
-        if (remote.ingresos) setIngresos(remote.ingresos);
-        if (remote.gastos)   setGastos(remote.gastos);
-        if (remote.apuntes)  setApuntes(remote.apuntes);
-      } else {
-        const local = {
-          deudas:   JSON.parse(localStorage.getItem(`finanzapp_deudas_${pid}`)   || '[]'),
-          ingresos: JSON.parse(localStorage.getItem(`finanzapp_ingresos_${pid}`) || '[]'),
-          gastos:   JSON.parse(localStorage.getItem(`finanzapp_gastos_${pid}`)   || '[]'),
-          apuntes:  JSON.parse(localStorage.getItem(`finanzapp_apuntes_${pid}`)  || '[]'),
-        };
-        if (local.deudas.length || local.ingresos.length || local.gastos.length || local.apuntes.length) {
-          saveProfileData(user.uid, pid, local).catch(console.error);
-        }
-      }
-      dataLoaded.current = true;
-    }).catch(console.error);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, pid]);
-
-  useEffect(() => {
-    if (!dataLoaded.current || !user) return;
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      saveProfileData(user.uid, pid, { deudas, ingresos, gastos, apuntes }).catch(console.error);
-    }, 1500);
-    return () => clearTimeout(saveTimer.current);
-  }, [deudas, ingresos, gastos, apuntes, user, pid]);
 
   const badgeRecordatorios = deudas.filter(d => {
     const fecha = d.frecuenciaPago === 'fecha_especifica'
@@ -186,9 +81,6 @@ function AppInner({ profile, onSwitchProfile }) {
 
   const hayAlgoSeleccionado = Object.values(selBorrar).some(Boolean);
 
-  // ── renderPage: switch que decide qué pantalla mostrar ────────────────────
-  // Las páginas de info no necesitan datos → se renderizan directamente.
-  // Las páginas de finanzas reciben los arrays y sus setters como props.
   const renderPage = () => {
     switch (page) {
       case 'dashboard':        return <Dashboard deudas={deudas} ingresos={ingresos} gastos={gastos} onNavigate={setPage} />;
@@ -200,49 +92,24 @@ function AppInner({ profile, onSwitchProfile }) {
       case 'recordatorios':    return <Recordatorios deudas={deudas} setDeudas={setDeudas} />;
       case 'calculadora':      return <Calculadora />;
       case 'resumen-general':  return <ResumenGeneral />;
-      case 'libreta':          return <Libreta apuntes={apuntes} setApuntes={setApuntes} deudas={deudas} ingresos={ingresos} gastos={gastos} />;
-      case 'guia':             return <Guia />;
-      // ── PÁGINAS NUEVAS ──────────────────────────────────────────────────────
-      case 'cuentanos':        return <Cuentanos />;
-      case 'acerca-de':        return <AcercaDe />;
-      case 'contactenos':      return <Contactenos />;
-      case 'tratamiento':      return <TratamientoDatos />;
-      // ────────────────────────────────────────────────────────────────────────
       default:                 return null;
     }
   };
 
-  // Las páginas de info no muestran los botones de exportar/borrar
-  const INFO_PAGES = ['cuentanos', 'acerca-de', 'contactenos', 'tratamiento', 'guia'];
-  const isInfoPage = INFO_PAGES.includes(page);
-
   return (
-    <Layout
-      activePage={page}
-      onNavigate={setPage}
-      badgeRecordatorios={badgeRecordatorios}
-      onSwitchProfile={onSwitchProfile}
-      onLogout={logout}
-    >
-      {/* Botones exportar/borrar — solo en páginas de datos */}
-      {!isInfoPage && (
-        <div className="flex justify-end gap-2 mb-5">
-          <button
-            onClick={() => { setShowIO(p => !p); setImportMsg(''); }}
-            className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-blue-900/50 bg-white dark:bg-[#0f1826] px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-[#162032] font-medium shadow-sm"
-          >
-            <FileSpreadsheet size={13}/> Exportar / Importar
-          </button>
-          <button
-            onClick={() => { setShowBorrar(true); setConfirmText(''); }}
-            className="flex items-center gap-1.5 text-xs text-red-500 border border-red-200 dark:border-red-900/50 bg-white dark:bg-[#0f1826] px-3 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 font-medium shadow-sm"
-          >
-            <Trash2 size={13}/> Borrar todo
-          </button>
-        </div>
-      )}
+    <Layout activePage={page} onNavigate={setPage} badgeRecordatorios={badgeRecordatorios} onSwitchProfile={onSwitchProfile}>
 
-      {/* Panel exportar/importar */}
+      <div className="flex justify-end gap-2 mb-5">
+        <button onClick={() => { setShowIO(p => !p); setImportMsg(''); }}
+          className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-blue-900/50 bg-white dark:bg-[#0f1826] px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-[#162032] font-medium shadow-sm">
+          <FileSpreadsheet size={13}/> Exportar / Importar
+        </button>
+        <button onClick={() => { setShowBorrar(true); setConfirmText(''); }}
+          className="flex items-center gap-1.5 text-xs text-red-500 border border-red-200 dark:border-red-900/50 bg-white dark:bg-[#0f1826] px-3 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 font-medium shadow-sm">
+          <Trash2 size={13}/> Borrar todo
+        </button>
+      </div>
+
       {showIO && (
         <div className="bg-white dark:bg-[#0f1826] rounded-2xl border border-slate-200 dark:border-blue-900/50 p-5 shadow-sm mb-5 relative">
           <button onClick={() => setShowIO(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X size={16}/></button>
@@ -283,7 +150,6 @@ function AppInner({ profile, onSwitchProfile }) {
 
       {renderPage()}
 
-      {/* Modal borrar */}
       {showBorrar && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center sm:p-4">
           <div className="bg-white dark:bg-[#0f1826] rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md overflow-hidden">
@@ -336,11 +202,7 @@ function AppInner({ profile, onSwitchProfile }) {
 }
 
 function ExBtn({ icon: Icon, label, sub, onClick, color }) {
-  const c = {
-    green:  'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400',
-    blue:   'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400',
-    purple: 'bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400',
-  };
+  const c = { green: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400', blue: 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400', purple: 'bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400' };
   return (
     <button onClick={onClick} className="w-full flex items-center gap-3 p-3 border border-slate-200 dark:border-blue-900/50 rounded-xl hover:bg-slate-50 dark:hover:bg-[#162032] transition-colors text-left">
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${c[color]}`}><Icon size={14}/></div>

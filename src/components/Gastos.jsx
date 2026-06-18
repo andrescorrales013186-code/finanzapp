@@ -3,7 +3,6 @@ import { Plus, Trash2, Edit2, Coffee, ShoppingCart, Home, Zap } from 'lucide-rea
 import { formatCurrency } from '../utils/calculations';
 import MoneyInput from './MoneyInput';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import ChartTooltip from './ChartTooltip';
 
 const CATEGORIAS_FIJO = [
   'Arriendo / Vivienda', 'Servicios públicos', 'Alimentación', 'Transporte',
@@ -32,11 +31,8 @@ const emptyHormiga = { descripcion: '', categoria: 'Café / Bebidas',       mont
 
 function hoy() { return new Date().toISOString().split('T')[0]; }
 
-export default function Gastos({ gastos, setGastos, quickHormiga = false }) {
-  const [tab, setTab] = useState(quickHormiga ? 'hormiga' : 'fijo');
-  const [showQuick, setShowQuick] = useState(quickHormiga);
-  const [quickForm, setQuickForm] = useState({ descripcion: '', monto: '', categoria: 'Café / Bebidas' });
-  const [quickError, setQuickError] = useState('');
+export default function Gastos({ gastos, setGastos }) {
+  const [tab, setTab] = useState('fijo');
 
   const gastosFijos   = useMemo(() => gastos.filter(g => !g.esHormiga), [gastos]);
   const gastosHormiga = useMemo(() => gastos.filter(g =>  g.esHormiga), [gastos]);
@@ -45,25 +41,6 @@ export default function Gastos({ gastos, setGastos, quickHormiga = false }) {
   const totalHormigaM = useMemo(() => gastosHormiga.reduce((s, g) => s + getMensual(g), 0), [gastosHormiga]);
   const totalM        = totalFijoM + totalHormigaM;
 
-  const handleQuickSave = () => {
-    if (!quickForm.descripcion.trim()) { setQuickError('Escribe qué fue el gasto'); return; }
-    if (!quickForm.monto || isNaN(quickForm.monto)) { setQuickError('Escribe el monto'); return; }
-    const nuevo = {
-      ...emptyHormiga,
-      id: Date.now().toString(),
-      descripcion: quickForm.descripcion.trim(),
-      monto: quickForm.monto,
-      categoria: quickForm.categoria,
-      esHormiga: true,
-      fecha: hoy(),
-    };
-    setGastos(prev => [...prev, nuevo]);
-    setQuickForm({ descripcion: '', monto: '', categoria: 'Café / Bebidas' });
-    setQuickError('');
-    setShowQuick(false);
-    setTab('hormiga');
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -71,147 +48,11 @@ export default function Gastos({ gastos, setGastos, quickHormiga = false }) {
         <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">Administra tus gastos fijos y gastos hormiga por separado</p>
       </div>
 
-      {/* ── CONSEJO GASTO HORMIGA ── */}
-      <div style={{
-        background: 'linear-gradient(135deg, #4c1d95 0%, #2e1065 100%)',
-        borderRadius: 14, padding: '14px 16px',
-        display: 'flex', alignItems: 'center', gap: 14,
-      }}>
-        <div style={{ fontSize: 28, flexShrink: 0 }}>🐜</div>
-        <div style={{ flex: 1 }}>
-          <p style={{ fontSize: 13, fontWeight: 600, color: '#e9d5ff', margin: '0 0 3px' }}>
-            Registra tus gastos hormiga al instante
-          </p>
-          <p style={{ fontSize: 11, color: '#a78bfa', margin: 0, lineHeight: 1.5 }}>
-            El café, el snack, el domicilio — regístralos ahora antes de olvidar. Al mes sorprende cuánto suman.
-          </p>
-        </div>
-        <button
-          onClick={() => setShowQuick(true)}
-          style={{
-            background: '#7c3aed', border: 'none', borderRadius: 10,
-            padding: '8px 14px', color: '#fff', fontSize: 12,
-            fontWeight: 600, cursor: 'pointer', flexShrink: 0,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          + Registrar
-        </button>
-      </div>
-
-      {/* ── MODAL RÁPIDO GASTO HORMIGA ── */}
-      {showQuick && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-          zIndex: 60, display: 'flex', alignItems: 'flex-end',
-          justifyContent: 'center', padding: '0 0 0 0',
-        }}
-          onClick={() => setShowQuick(false)}
-        >
-          <div
-            style={{
-              background: 'var(--color-background-primary, #0f1826)',
-              borderRadius: '20px 20px 0 0',
-              padding: '20px 20px 32px',
-              width: '100%', maxWidth: 480,
-              boxShadow: '0 -8px 40px rgba(0,0,0,0.4)',
-              border: '0.5px solid rgba(124,58,237,0.3)',
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Handle */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <div style={{ width: 36, height: 4, background: '#334155', borderRadius: 2 }}/>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-              <span style={{ fontSize: 22 }}>🐜</span>
-              <div>
-                <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>Gasto hormiga rápido</p>
-                <p style={{ fontSize: 11, color: 'var(--color-text-tertiary)', margin: 0 }}>Regístralo antes de olvidarlo</p>
-              </div>
-            </div>
-
-            {/* Categorías rápidas */}
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-              {['Café / Bebidas','Comida rápida','Transporte','Snacks','Suscripción','Otro'].map(cat => (
-                <button key={cat} onClick={() => setQuickForm(p => ({ ...p, categoria: cat }))} style={{
-                  padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 500,
-                  border: `1.5px solid ${quickForm.categoria === cat ? '#7c3aed' : 'var(--color-border-tertiary)'}`,
-                  background: quickForm.categoria === cat ? 'rgba(124,58,237,0.15)' : 'transparent',
-                  color: quickForm.categoria === cat ? '#a78bfa' : 'var(--color-text-tertiary)',
-                  cursor: 'pointer', transition: 'all .12s',
-                }}>
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 10, marginBottom: 12 }}>
-              <div>
-                <label style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '.07em', display: 'block', marginBottom: 5 }}>¿Qué fue?</label>
-                <input
-                  autoFocus
-                  placeholder="Ej: Café en la oficina"
-                  value={quickForm.descripcion}
-                  onChange={e => { setQuickForm(p => ({ ...p, descripcion: e.target.value })); setQuickError(''); }}
-                  onKeyDown={e => { if (e.key === 'Enter') handleQuickSave(); }}
-                  style={{
-                    width: '100%', padding: '10px 12px', borderRadius: 10,
-                    border: '0.5px solid var(--color-border-secondary)',
-                    background: 'var(--color-background-secondary)',
-                    color: 'var(--color-text-primary)', fontSize: 14,
-                    outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '.07em', display: 'block', marginBottom: 5 }}>Monto</label>
-                <input
-                  type="number"
-                  placeholder="0"
-                  value={quickForm.monto}
-                  onChange={e => { setQuickForm(p => ({ ...p, monto: e.target.value })); setQuickError(''); }}
-                  onKeyDown={e => { if (e.key === 'Enter') handleQuickSave(); }}
-                  style={{
-                    width: '100%', padding: '10px 12px', borderRadius: 10,
-                    border: '0.5px solid var(--color-border-secondary)',
-                    background: 'var(--color-background-secondary)',
-                    color: 'var(--color-text-primary)', fontSize: 14,
-                    outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
-                  }}
-                />
-              </div>
-            </div>
-
-            {quickError && <p style={{ color: '#ef4444', fontSize: 12, margin: '0 0 10px' }}>{quickError}</p>}
-
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={handleQuickSave} style={{
-                flex: 1, padding: 12, background: '#7c3aed', border: 'none',
-                borderRadius: 12, color: '#fff', fontWeight: 600,
-                fontSize: 14, cursor: 'pointer',
-              }}>
-                Guardar gasto
-              </button>
-              <button onClick={() => setShowQuick(false)} style={{
-                padding: '12px 16px', background: 'var(--color-background-secondary)',
-                border: '0.5px solid var(--color-border-tertiary)',
-                borderRadius: 12, color: 'var(--color-text-secondary)',
-                fontSize: 14, cursor: 'pointer',
-              }}>
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {gastos.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
-          <SumCard label="Total mensual"  value={formatCurrency(totalM)}        sub={`${gastos.length} gasto${gastos.length !== 1 ? 's' : ''}`} color="slate"  />
-          <SumCard label="Gastos fijos"   value={formatCurrency(totalFijoM)}    sub={totalM > 0 ? `${((totalFijoM/totalM)*100).toFixed(0)}%` : ''}             color="orange" />
-          <SumCard label="Gastos hormiga" value={formatCurrency(totalHormigaM)} sub={totalM > 0 ? `${((totalHormigaM/totalM)*100).toFixed(0)}%` : ''}          color="violet" />
+          <SumCard label="Total mensual"   value={formatCurrency(totalM)}        sub={`${gastos.length} gasto${gastos.length !== 1 ? 's' : ''}`} color="slate"  />
+          <SumCard label="Gastos fijos"    value={formatCurrency(totalFijoM)}    sub={totalM > 0 ? `${((totalFijoM/totalM)*100).toFixed(0)}%` : ''}             color="orange" />
+          <SumCard label="Gastos hormiga"  value={formatCurrency(totalHormigaM)} sub={totalM > 0 ? `${((totalHormigaM/totalM)*100).toFixed(0)}%` : ''}          color="violet" />
         </div>
       )}
 
@@ -330,7 +171,7 @@ function SubSeccion({ titulo, descripcionTitulo, gastos, setGastos, allGastos, c
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={30} outerRadius={50} dataKey="value" paddingAngle={2}>
                     {pieData.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
                   </Pie>
-                  <Tooltip content={<ChartTooltip />} />
+                  <Tooltip formatter={v => formatCurrency(v)} contentStyle={{ background: '#0f1826', border: '1px solid rgba(37,99,235,0.3)', borderRadius: 8, color: '#f1f5f9' }} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex-1 space-y-1 overflow-y-auto max-h-28">

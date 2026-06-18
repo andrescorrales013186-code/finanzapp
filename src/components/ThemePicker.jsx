@@ -4,41 +4,18 @@ import { useTheme } from '../context/ThemeContext';
 
 export default function ThemePicker() {
   const { theme, themes, cats, applyTheme } = useTheme();
-  const [open, setOpen]     = useState(false);
-  const [query, setQuery]   = useState('');
-  const [panelPos, setPanelPos] = useState({});
-  const btnRef   = useRef(null);
+  const [open, setOpen]   = useState(false);
+  const [query, setQuery] = useState('');
   const panelRef = useRef(null);
   const inputRef = useRef(null);
 
-  const handleToggle = () => {
-    if (!open && btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - r.bottom;
-      const openUp = spaceBelow < 360 && r.top > 360;
-      const left = Math.max(4, Math.min(r.left, window.innerWidth - 292));
-      setPanelPos(openUp
-        ? { bottom: window.innerHeight - r.top + 8, left }
-        : { top: r.bottom + 8, left }
-      );
-    }
-    setOpen(p => !p);
-  };
-
-  // Cerrar al tocar/hacer clic fuera
+  // Cerrar al hacer clic fuera
   useEffect(() => {
     const handler = (e) => {
-      if (
-        panelRef.current && !panelRef.current.contains(e.target) &&
-        btnRef.current   && !btnRef.current.contains(e.target)
-      ) setOpen(false);
+      if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
-    document.addEventListener('touchstart', handler, { passive: true });
-    return () => {
-      document.removeEventListener('mousedown', handler);
-      document.removeEventListener('touchstart', handler);
-    };
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   // Foco en búsqueda al abrir
@@ -59,12 +36,11 @@ export default function ThemePicker() {
     : themes;
 
   return (
-    <div className="relative">
+    <div ref={panelRef} className="relative">
 
       {/* Botón disparador */}
       <button
-        ref={btnRef}
-        onClick={handleToggle}
+        onClick={() => setOpen(p => !p)}
         title="Color Theme"
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/10 transition-colors text-xs font-medium"
       >
@@ -72,24 +48,11 @@ export default function ThemePicker() {
         <span className="hidden sm:inline max-w-[90px] truncate">{theme.name}</span>
       </button>
 
-      {/* Panel estilo VS Code — posición fixed para no ser cortado por overflow */}
+      {/* Panel estilo VS Code */}
       {open && (
         <div
-          ref={panelRef}
-          style={{
-            position: 'fixed',
-            top:    panelPos.top,
-            bottom: panelPos.bottom,
-            left:   panelPos.left,
-            width:  288,
-            zIndex: 99999,
-            background: '#1e1e1e',
-            color: '#ccc',
-            borderRadius: 12,
-            overflow: 'hidden',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-            border: '1px solid rgba(255,255,255,0.1)',
-          }}
+          className="absolute bottom-full mb-2 right-0 z-50 w-72 rounded-xl overflow-hidden shadow-2xl border border-white/10"
+          style={{ background: '#1e1e1e', color: '#ccc' }}
         >
           {/* Header */}
           <div

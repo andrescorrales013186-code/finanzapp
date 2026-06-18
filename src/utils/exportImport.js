@@ -76,7 +76,7 @@ export function exportarTablaExcel(deudas) {
 export function exportarCSV(deudas, ingresos, gastos) {
   const rows = [
     ['Tipo', 'Nombre', 'Categoría', 'Monto', 'Frecuencia', 'Fecha', 'Notas'],
-    ...deudas.map(d => ['Obligación', d.nombre, d.tipoObligacion, formatNum(d.saldoCapital), d.frecuenciaPago, d.fechaPago || '', d.notas || '']),
+    ...deudas.map(d => ['Deuda', d.nombre, d.tipoObligacion, formatNum(d.saldoCapital), d.frecuenciaPago, d.fechaPago || '', d.notas || '']),
     ...ingresos.map(i => ['Ingreso', i.nombre, i.tipo, formatNum(i.monto), i.frecuencia, i.fecha || '', i.notas || '']),
     ...gastos.map(g => ['Gasto', g.descripcion, g.categoria, formatNum(g.monto), g.frecuencia, g.fecha || '', g.notas || '']),
   ];

@@ -8,7 +8,6 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Cell, PieChart, Pie, Legend, RadialBarChart, RadialBar,
 } from 'recharts';
-import ChartTooltip from './ChartTooltip';
 import {
   formatCurrency, formatPercent, calcularInteresMensual,
   calcularProximoPago, diasParaProximoPago,
@@ -305,7 +304,7 @@ function ResumenVsIngresos({ m, deudas, ingresos, gastos, alertLevel }) {
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
               <YAxis tickFormatter={v => `$${(v/1000000).toFixed(1)}M`} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+              <Tooltip formatter={v => formatCurrency(v)} cursor={{ fill: '#f8fafc' }} />
               <Bar dataKey="valor" radius={[6, 6, 0, 0]} maxBarSize={48}>
                 {barData.map((e, i) => <Cell key={i} fill={e.fill} />)}
               </Bar>
@@ -324,7 +323,7 @@ function ResumenVsIngresos({ m, deudas, ingresos, gastos, alertLevel }) {
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={48} outerRadius={75} dataKey="value" paddingAngle={2}>
                     {pieData.map((e, i) => <Cell key={i} fill={e.fill} />)}
                   </Pie>
-                  <Tooltip content={<ChartTooltip />} />
+                  <Tooltip formatter={v => formatCurrency(v)} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="space-y-1.5 mt-1">

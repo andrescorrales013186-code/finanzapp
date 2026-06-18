@@ -1,19 +1,28 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Bell, CheckCircle2, XCircle, Clock, AlertTriangle, BellOff } from 'lucide-react';
 import { formatCurrency, calcularProximoPago, diasParaProximoPago } from '../utils/calculations';
-import { requestNotificationPermission, getPermissionState, checkDeudaNotifications } from '../utils/notifications';
 
 export default function Recordatorios({ deudas, setDeudas }) {
-  const [notifPermiso, setNotifPermiso] = useState(getPermissionState);
+  const [notifPermiso, setNotifPermiso] = useState(typeof Notification !== 'undefined' ? Notification.permission : 'unsupported');
 
   useEffect(() => {
-    if (notifPermiso === 'granted') checkDeudaNotifications(deudas);
-  }, [notifPermiso]);
+    if (notifPermiso === 'granted') {
+      const vencen = pagosProximos.filter(p => p.dias >= 0 && p.dias <= parseInt(p.recordatorio || 3));
+      vencen.forEach(p => {
+        try {
+          new Notification(`Recordatorio: ${p.nombre}`, {
+            body: `Pago de ${formatCurrency(p.saldoCapital)} vence ${p.dias === 0 ? 'HOY' : `en ${p.dias} días`}`,
+            icon: '/vite.svg',
+          });
+        } catch {}
+      });
+    }
+  }, []);
 
   const pedirPermiso = async () => {
-    const result = await requestNotificationPermission();
+    if (typeof Notification === 'undefined') return;
+    const result = await Notification.requestPermission();
     setNotifPermiso(result);
-    if (result === 'granted') checkDeudaNotifications(deudas);
   };
 
   const marcarPagado = (deudaId) => {

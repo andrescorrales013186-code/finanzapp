@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { Plus, Trash2, Edit2, ChevronDown, ChevronUp, ExternalLink, CreditCard, CheckCircle2, XCircle, Clock, BarChart2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { formatCurrency, formatPercent, calcularInteresMensual, calcularProximoPago, diasParaProximoPago } from '../utils/calculations';
-import ChartTooltip from './ChartTooltip';
 import MoneyInput from './MoneyInput';
 
 const TIPOS = ['Tarjeta de crédito','Préstamo personal','Crédito hipotecario','Crédito de vehículo','Crédito de consumo','Libranza','Deuda informal','Factura de servicio','Otro'];
@@ -16,7 +15,7 @@ const FRECUENCIAS = [
 const emptyForm = {
   nombre: '', tipoObligacion: 'Tarjeta de crédito', saldoCapital: '',
   tasaInteres: '', frecuenciaPago: 'mensual', fechaPago: '', fechaInicio: '',
-  cuotaMensual: '', numeroCuotas: '', urlPortal: '', urlPSE: '', recordatorio: '3', notas: '',
+  cuotaMensual: '', urlPortal: '', urlPSE: '', recordatorio: '3', notas: '',
 };
 
 export default function Deudas({ deudas, setDeudas }) {
@@ -79,26 +78,20 @@ export default function Deudas({ deudas, setDeudas }) {
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">Administra tus créditos, préstamos y deudas</p>
         </div>
         <button onClick={() => { reset(); setShowForm(true); }} className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 text-sm font-medium shadow-sm">
-          <Plus size={16} /> Nueva obligación
+          <Plus size={16} /> Nueva deuda
         </button>
       </div>
 
       {deudas.length > 0 && (
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-[#0f1826] border border-slate-100 dark:border-blue-900/40 rounded-2xl p-5 shadow-sm">
-            <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8 }}>
-              <div style={{ width:6, height:6, borderRadius:'50%', background:'#ef4444' }}/>
-              <p style={{ fontSize:10, fontWeight:500, color:'var(--color-text-tertiary)', textTransform:'uppercase', letterSpacing:'.07em', margin:0 }}>Total capital adeudado</p>
-            </div>
-            <p style={{ fontSize:22, fontWeight:500, color:'var(--color-text-primary)', letterSpacing:'-.02em', margin:0 }}>{formatCurrency(totalDeuda)}</p>
+          <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 rounded-2xl p-5">
+            <p className="text-xs text-red-500 dark:text-red-400 font-medium">Total capital adeudado</p>
+            <p className="text-2xl font-bold text-red-700 dark:text-red-400 mt-1">{formatCurrency(totalDeuda)}</p>
           </div>
-          <div className="bg-white dark:bg-[#0f1826] border border-slate-100 dark:border-blue-900/40 rounded-2xl p-5 shadow-sm">
-            <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8 }}>
-              <div style={{ width:6, height:6, borderRadius:'50%', background:'#f97316' }}/>
-              <p style={{ fontSize:10, fontWeight:500, color:'var(--color-text-tertiary)', textTransform:'uppercase', letterSpacing:'.07em', margin:0 }}>Interés mensual total</p>
-            </div>
-            <p style={{ fontSize:22, fontWeight:500, color:'var(--color-text-primary)', letterSpacing:'-.02em', margin:0 }}>{formatCurrency(totalInteres)}</p>
-            <p style={{ fontSize:11, color:'var(--color-text-tertiary)', margin:'4px 0 0' }}>{formatCurrency(totalInteres * 12)} al año</p>
+          <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/50 rounded-2xl p-5">
+            <p className="text-xs text-orange-500 dark:text-orange-400 font-medium">Interés mensual total</p>
+            <p className="text-2xl font-bold text-orange-700 dark:text-orange-400 mt-1">{formatCurrency(totalInteres)}</p>
+            <p className="text-xs text-orange-400 dark:text-orange-500 mt-0.5">{formatCurrency(totalInteres * 12)} al año</p>
           </div>
         </div>
       )}
@@ -106,7 +99,7 @@ export default function Deudas({ deudas, setDeudas }) {
       {/* Formulario */}
       {showForm && (
         <div className="bg-white dark:bg-[#0f1826] rounded-2xl border border-slate-200 dark:border-blue-900/50 p-6 shadow-sm">
-          <h3 className="font-semibold text-slate-800 dark:text-white mb-5">{editId ? 'Editar deuda' : 'Registrar nueva obligación'}</h3>
+          <h3 className="font-semibold text-slate-800 dark:text-white mb-5">{editId ? 'Editar deuda' : 'Registrar nueva deuda'}</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-4">
               <F label="Nombre / Entidad" error={errors.nombre}>
@@ -125,38 +118,6 @@ export default function Deudas({ deudas, setDeudas }) {
               </F>
               <F label="Cuota mensual ($) — opcional">
                 <MoneyInput value={form.cuotaMensual} onChange={v => setForm(p => ({ ...p, cuotaMensual: v }))} placeholder="0" className={inp()} />
-              </F>
-              <F label="Número de cuotas — opcional">
-                <input
-                  type="number" min="1" step="1"
-                  placeholder="Ej: 12 (dejar vacío si es indefinido)"
-                  value={form.numeroCuotas}
-                  onChange={e => {
-                    const n = e.target.value;
-                    setForm(p => {
-                      // Auto-calcular cuota si hay capital y tasa
-                      const cap  = parseFloat(p.saldoCapital || 0);
-                      const tasa = parseFloat(p.tasaInteres || 0) / 100;
-                      let cuota  = p.cuotaMensual;
-                      if (n && cap && tasa >= 0) {
-                        // Factor por frecuencia: quincenal/semanal ajustan la tasa
-                        const factor = p.frecuenciaPago === 'quincenal' ? 0.5 : p.frecuenciaPago === 'semanal' ? 0.25 : 1;
-                        const tasaPeriodo = tasa * factor;
-                        const intPeriodo  = cap * tasaPeriodo;
-                        const capitalCuota = cap / parseInt(n);
-                        cuota = Math.round(capitalCuota + intPeriodo).toString();
-                      }
-                      return { ...p, numeroCuotas: n, cuotaMensual: cuota };
-                    });
-                  }}
-                  className={inp()}
-                />
-                {form.numeroCuotas && form.saldoCapital && (
-                  <p style={{ fontSize:11, color:'var(--color-text-tertiary)', marginTop:4 }}>
-                    Cuota estimada: {formatCurrency(parseFloat(form.cuotaMensual || 0))} ·
-                    {form.frecuenciaPago === 'quincenal' ? ` cada 15 días` : form.frecuenciaPago === 'semanal' ? ` semanal` : ` mensual`}
-                  </p>
-                )}
               </F>
               <F label="Frecuencia de pago">
                 <select value={form.frecuenciaPago} onChange={e => setForm(p => ({ ...p, frecuenciaPago: e.target.value }))} className={inp()}>
@@ -289,12 +250,12 @@ function DeudaCard({ d, expanded, activeTab, setExpanded, setActiveTab, handleEd
               {perdidos > 0 && <span className="text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full">{perdidos} pago{perdidos>1?'s':''} pendiente{perdidos>1?'s':''}</span>}
             </div>
             <div className="flex items-center gap-4 mt-1 flex-wrap">
-              <span className="text-xs text-slate-500 dark:text-slate-400">Capital: <strong className="text-slate-700 dark:text-slate-200">{formatCurrency(d.saldoCapital)}</strong></span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">Interés: <strong className="text-slate-600 dark:text-slate-300">{formatPercent(d.tasaInteres)}/mes</strong></span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Capital: <strong className="text-red-600 dark:text-red-400">{formatCurrency(d.saldoCapital)}</strong></span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Interés: <strong className="text-orange-600 dark:text-orange-400">{formatPercent(d.tasaInteres)}/mes</strong></span>
               <span className="text-xs text-slate-400 dark:text-slate-500">{pct}% del total</span>
             </div>
-            <div className="mt-2 h-1 bg-slate-100 dark:bg-[#162032] rounded-full overflow-hidden">
-              <div className="h-full bg-orange-400 rounded-full" style={{ width: `${Math.min(parseFloat(pct), 100)}%` }} />
+            <div className="mt-2 h-1.5 bg-slate-100 dark:bg-[#162032] rounded-full overflow-hidden">
+              <div className="h-full bg-red-400 rounded-full" style={{ width: `${Math.min(parseFloat(pct), 100)}%` }} />
             </div>
           </div>
           <div className="flex items-center gap-1 ml-1 shrink-0">
@@ -396,7 +357,7 @@ function DeudaCard({ d, expanded, activeTab, setExpanded, setActiveTab, handleEd
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e3a6e" vertical={false} />
                     <XAxis dataKey="fecha" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
                     <YAxis tickFormatter={v => `$${(v/1000).toFixed(0)}K`} tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                    <Tooltip formatter={v => formatCurrency(v)} contentStyle={{ background: '#0f1826', border: '1px solid rgba(37,99,235,0.3)', borderRadius: 8, color: '#f1f5f9' }} />
                     <Bar dataKey="monto" radius={[4,4,0,0]} maxBarSize={40}>
                       {chartData.map((entry, i) => <Cell key={i} fill={entry.pagado ? '#10b981' : '#ef4444'} />)}
                     </Bar>

@@ -3,7 +3,6 @@ import { useProfile } from '../context/ProfileContext';
 import { formatCurrency, calcularInteresMensual } from '../utils/calculations';
 import { TrendingUp, TrendingDown, CreditCard, ShoppingCart, Users, Check } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import ChartTooltip from './ChartTooltip';
 
 const FREQ_I = { mensual: 1, quincenal: 2, semanal: 4, unico: 1 };
 const FREQ_G = { diario: 30, semanal: 4, quincenal: 2, mensual: 1, unico: 0 };
@@ -107,7 +106,7 @@ export default function ResumenGeneral() {
           {/* KPIs consolidados */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <KpiCard icon={TrendingUp}   label="Ingresos / mes"  value={formatCurrency(totales.ingresoM)}  color="green" />
-            <KpiCard icon={CreditCard}   label="Obligación total"     value={formatCurrency(totales.deuda)}     color="red"   />
+            <KpiCard icon={CreditCard}   label="Deuda total"     value={formatCurrency(totales.deuda)}     color="red"   />
             <KpiCard icon={ShoppingCart} label="Gastos / mes"    value={formatCurrency(totales.gastoM)}    color="orange"/>
             <KpiCard icon={totales.libre >= 0 ? TrendingUp : TrendingDown} label="Flujo libre / mes" value={formatCurrency(totales.libre)} color={totales.libre >= 0 ? 'blue' : 'red'} />
           </div>
@@ -121,7 +120,7 @@ export default function ResumenGeneral() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 dark:bg-[#080d16] border-b border-slate-100 dark:border-blue-900/40">
                   <tr>
-                    {['Perfil','Ingresos/mes','Obligación total','Gastos/mes','Interés/mes','Flujo libre'].map(h => (
+                    {['Perfil','Ingresos/mes','Deuda total','Gastos/mes','Interés/mes','Flujo libre'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400">{h}</th>
                     ))}
                   </tr>
@@ -166,7 +165,7 @@ export default function ResumenGeneral() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e3a6e" vertical={false} />
                   <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                   <YAxis tickFormatter={v => `$${(v/1000000).toFixed(1)}M`} tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                  <Tooltip formatter={v => formatCurrency(v)} contentStyle={{ background: '#0f1826', border: '1px solid rgba(37,99,235,0.3)', borderRadius: 8, color: '#f1f5f9' }} />
                   <Bar dataKey="Ingresos"  fill="#10b981" radius={[4,4,0,0]} maxBarSize={32} />
                   <Bar dataKey="Gastos"    fill="#f97316" radius={[4,4,0,0]} maxBarSize={32} />
                   <Bar dataKey="Intereses" fill="#ef4444" radius={[4,4,0,0]} maxBarSize={32} />
