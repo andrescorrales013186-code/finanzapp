@@ -43,6 +43,23 @@ El selector aparece en:
 
 El tema seleccionado se guarda automáticamente en `localStorage`.
 
+
+---
+
+## 📸 Demo
+
+### 🔐 Inicio de sesión
+![Login](images/login.png)
+
+### 👤 Selección de perfil
+![Perfil](images/perfil.png)
+
+### 📊 Dashboard financiero
+![Dashboard](images/dashboard.png)
+
+### 📥 Exportación e importación de datos
+![Exportar](images/export.png)
+
 ---
 
 ## 🛠️ Instalación
@@ -50,3 +67,5 @@ El tema seleccionado se guarda automáticamente en `localStorage`.
 ```bash
 npm install
 npm run dev
+
+
